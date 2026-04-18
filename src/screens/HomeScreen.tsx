@@ -1,21 +1,26 @@
 import React, {useEffect} from 'react';
-import {ActivityIndicator, FlatList, StyleSheet, Text, View} from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import {useAppDispatch, useAppSelector} from '../app/hooks';
 import {fetchProducts} from '../features/products/productsSlice';
+import ProductCard from '../components/ProductCard';
 
-// Esta pantalla carga productos cuando se monta
-// y luego los muestra en una lista simple.
 const HomeScreen = () => {
   const dispatch = useAppDispatch();
 
-  // Leemos productos y estado desde Redux
+  // Leemos estado global desde Redux
   const products = useAppSelector(state => state.products.items);
   const status = useAppSelector(state => state.products.status);
   const error = useAppSelector(state => state.products.error);
 
   useEffect(() => {
-    // Cuando la pantalla aparece por primera vez, cargamos productos
+    // Cargamos productos al montar la pantalla
     dispatch(fetchProducts({page: 0, limit: 10}));
   }, [dispatch]);
 
@@ -23,7 +28,7 @@ const HomeScreen = () => {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text>Cargando productos...</Text>
+        <Text style={styles.message}>Cargando productos...</Text>
       </View>
     );
   }
@@ -31,47 +36,52 @@ const HomeScreen = () => {
   if (status === 'failed') {
     return (
       <View style={styles.center}>
-        <Text>{error || 'Ocurrió un error'}</Text>
+        <Text style={styles.message}>{error || 'Ocurrió un error'}</Text>
       </View>
     );
   }
 
   return (
-    <FlatList
-      data={products}
-      keyExtractor={item => item.id.toString()}
-      renderItem={({item}) => (
-        <View style={styles.card}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text>${item.price}</Text>
-        </View>
-      )}
-      contentContainerStyle={styles.listContent}
-    />
+    <View style={styles.container}>
+      <Text style={styles.header}>Productos</Text>
+
+      <FlatList
+        data={products}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => <ProductCard product={item} />}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fafafa',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    padding: 16,
-  },
-  card: {
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: '#fff',
-  },
-  title: {
+  message: {
+    marginTop: 12,
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    color: '#333',
   },
 });
 

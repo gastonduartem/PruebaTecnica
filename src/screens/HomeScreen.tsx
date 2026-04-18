@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {ActivityIndicator, FlatList, StyleSheet, Text, View} from 'react-native';
 
 import {useAppDispatch, useAppSelector} from '../app/hooks';
-import {fetchProducts} from '../features/products/productsActions';
+import {fetchProducts} from '../features/products/productsSlice';
 
 // Esta pantalla carga productos cuando se monta
 // y luego los muestra en una lista simple.
@@ -16,7 +16,7 @@ const HomeScreen = () => {
 
   useEffect(() => {
     // Cuando la pantalla aparece por primera vez, cargamos productos
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({page: 0, limit: 10}));
   }, [dispatch]);
 
   if (status === 'loading') {

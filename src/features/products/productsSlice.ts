@@ -1,8 +1,9 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import type {PayloadAction} from '@reduxjs/toolkit';
+import {getProducts, searchProducts} from '../../api/productsApi';
 import type {Product, ProductsStatus} from './types';
 
-// Este es el estado que va a manejar la parte "products" del store.
+// Estado que maneja todo lo relacionado a productos
 interface ProductsState {
   items: Product[];
   status: ProductsStatus;
@@ -13,8 +14,6 @@ interface ProductsState {
   query: string;
 }
 
-// Estado inicial.
-// Es cómo arranca Redux antes de traer productos.
 const initialState: ProductsState = {
   items: [],
   status: 'idle',
@@ -25,49 +24,53 @@ const initialState: ProductsState = {
   query: '',
 };
 
-// createSlice crea:
-// 1. reducers
-// 2. acciones automáticamente
+// Thunk para traer productos paginados
+// "page" representa la página actual.
+// "limit" representa cuántos productos traer.
+export const fetchProducts = createAsyncThunk(
+  'products/fetchProducts',
+  async (
+    {page, limit}: {page: number; limit: number},
+    {rejectWithValue},
+  ) => {
+    try {
+      const skip = page * limit;
+      const data = await getProducts(limit, skip);
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al cargar productos');
+    }
+  },
+);
+
+// Thunk para buscar productos
+export const fetchSearchedProducts = createAsyncThunk(
+  'products/fetchSearchedProducts',
+  async (query: string, {rejectWithValue}) => {
+    try {
+      const data = await searchProducts(query);
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Error al buscar productos');
+    }
+  },
+);
+
 const productsSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    // Reemplaza toda la lista de productos
-    setProducts(state, action: PayloadAction<Product[]>) {
-      state.items = action.payload;
-    },
-
-    // Agrega productos al final de la lista actual
-    appendProducts(state, action: PayloadAction<Product[]>) {
-      state.items = [...state.items, ...action.payload];
-    },
-
-    // Cambia el estado de carga: idle, loading, succeeded, failed
-    setStatus(state, action: PayloadAction<ProductsStatus>) {
-      state.status = action.payload;
-    },
-
-    // Guarda un mensaje de error o lo limpia
-    setError(state, action: PayloadAction<string | null>) {
-      state.error = action.payload;
-    },
-
     // Guarda la página actual
     setPage(state, action: PayloadAction<number>) {
       state.page = action.payload;
     },
 
-    // Indica si todavía hay más productos para cargar
-    setHasMore(state, action: PayloadAction<boolean>) {
-      state.hasMore = action.payload;
-    },
-
-    // Guarda el texto de búsqueda actual
+    // Guarda el texto actual de búsqueda
     setQuery(state, action: PayloadAction<string>) {
       state.query = action.payload;
     },
 
-    // Resetea el estado de productos a su valor inicial
+    // Resetea parte del estado cuando queramos reiniciar el listado
     resetProductsState(state) {
       state.items = [];
       state.status = 'idle';
@@ -77,19 +80,52 @@ const productsSlice = createSlice({
       state.query = '';
     },
   },
+  extraReducers: builder => {
+    builder
+      // Loading inicial / paginación
+      .addCase(fetchProducts.pending, state => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        const {products, total, skip, limit} = action.payload;
+
+        // Si estamos en la primera página, reemplazamos todo
+        if (skip === 0) {
+          state.items = products;
+        } else {
+          // Si no, agregamos al final (paginación)
+          state.items = [...state.items, ...products];
+        }
+
+        state.status = 'succeeded';
+        state.hasMore = skip + limit < total;
+      })
+      .addCase(fetchProducts.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error =
+          (action.payload as string) || 'Error al cargar productos';
+      })
+
+      // Búsqueda
+      .addCase(fetchSearchedProducts.pending, state => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchSearchedProducts.fulfilled, (state, action) => {
+        const {products} = action.payload;
+        state.items = products;
+        state.status = 'succeeded';
+        state.hasMore = false; // por ahora búsqueda sin paginación
+      })
+      .addCase(fetchSearchedProducts.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error =
+          (action.payload as string) || 'Error al buscar productos';
+      });
+  },
 });
 
-// Exportamos las acciones para poder usarlas desde componentes o thunks
-export const {
-  setProducts,
-  appendProducts,
-  setStatus,
-  setError,
-  setPage,
-  setHasMore,
-  setQuery,
-  resetProductsState,
-} = productsSlice.actions;
+export const {setPage, setQuery, resetProductsState} = productsSlice.actions;
 
-// Exportamos el reducer para conectarlo al store
 export default productsSlice.reducer;

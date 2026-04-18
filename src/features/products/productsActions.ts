@@ -1,13 +1,9 @@
 import {AppDispatch} from '../../app/store';
 import {getProducts} from '../../api/productsApi';
-import {
-  setProducts,
-  setStatus,
-  setError,
-} from './productsSlice';
+import {setProducts, setStatus, setError} from './productsSlice';
 
-// Esta es una función async que usa dispatch.
-// No es un reducer, es lógica externa.
+// Esta función hace la carga de productos y usa dispatch
+// para ir actualizando el estado global.
 export const fetchProducts = () => {
   return async (dispatch: AppDispatch) => {
     try {
@@ -17,14 +13,14 @@ export const fetchProducts = () => {
       // 2. Llamamos a la API
       const data = await getProducts(10, 0);
 
-      // 3. Guardamos los productos en el state
+      // 3. Guardamos los productos en Redux
       dispatch(setProducts(data.products));
 
-      // 4. Indicamos que salió bien
+      // 4. Marcamos que terminó bien
       dispatch(setStatus('succeeded'));
-    } catch (error) {
-      // 5. Guardamos error si falla
-      dispatch(setError('Error al cargar productos'));
+    } catch (error: any) {
+      // 5. Si algo falla, guardamos el error y cambiamos el estado
+      dispatch(setError(error.message || 'Error al cargar productos'));
       dispatch(setStatus('failed'));
     }
   };

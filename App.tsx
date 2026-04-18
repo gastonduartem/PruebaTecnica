@@ -1,38 +1,20 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React from 'react';
+import {Provider} from 'react-redux';
+import {SafeAreaView, StatusBar, StyleSheet} from 'react-native';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import {store} from './src/app/store';
+import HomeScreen from './src/screens/HomeScreen';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+// Provider le da acceso al store de Redux a toda la app.
+// Todo lo que esté adentro puede usar selector y dispatch.
+function App(): React.JSX.Element {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <Provider store={store}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <HomeScreen />
+      </SafeAreaView>
+    </Provider>
   );
 }
 

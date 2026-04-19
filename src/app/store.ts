@@ -3,7 +3,7 @@ import {configureStore} from '@reduxjs/toolkit';
 // Importamos los reducers de cada feature.
 // Cada slice va a manejar una parte del estado global.
 import productsReducer from '../features/products/productsSlice';
-// import favoritesReducer from '../features/favorites/favoritesSlice';
+import favoritesReducer from '../features/favorites/favoritesSlice';
 
 // Creamos el store global.
 // Aca unimos todos los reducers en un solo estado.
@@ -13,7 +13,7 @@ export const store = configureStore({
     products: productsReducer,
 
     // "favorites" sera otra clave en el estado global
-    //favorites: favoritesReducer,
+    favorites: favoritesReducer,
   },
 });
 

@@ -4,6 +4,7 @@ import {configureStore} from '@reduxjs/toolkit';
 // Cada slice va a manejar una parte del estado global.
 import productsReducer from '../features/products/productsSlice';
 import favoritesReducer from '../features/favorites/favoritesSlice';
+import {saveFavoritesToStorage} from '../features/favorites/favoritesStorage';
 
 // Creamos el store global.
 // Aca unimos todos los reducers en un solo estado.
@@ -15,6 +16,12 @@ export const store = configureStore({
     // "favorites" sera otra clave en el estado global
     favorites: favoritesReducer,
   },
+});
+
+// Cada vez que cambie el store, guardamos favoritos en AsyncStorage
+store.subscribe(() => {
+  const state = store.getState();
+  saveFavoritesToStorage(state.favorites.entities);
 });
 
 // Tipos derivados automaticamente del store.

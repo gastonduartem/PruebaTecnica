@@ -16,6 +16,7 @@ import {
   resetProductsState,
   setPage,
   setQuery,
+  setRefreshing,
 } from '../features/products/productsSlice';
 import ProductCard from '../components/ProductCard';
 import {useDebounce} from '../utils/useDebounce';
@@ -38,6 +39,7 @@ const HomeScreen = () => {
   const limit = useAppSelector(state => state.products.limit);
   const hasMore = useAppSelector(state => state.products.hasMore);
   const query = useAppSelector(state => state.products.query);
+  const refreshing = useAppSelector(state => state.products.refreshing);
 
   // Valor de búsqueda con debounce
   const debouncedQuery = useDebounce(query, 300);
@@ -75,6 +77,22 @@ const HomeScreen = () => {
 
   const handleSearchChange = (text: string) => {
     dispatch(setQuery(text));
+  };
+
+  const handleRefresh = async () => {
+    // Si estamos buscando, refrescamos resultados de búsqueda
+    if (query.trim().length > 0) {
+      dispatch(setRefreshing(true));
+      await dispatch(fetchSearchedProducts(query.trim()));
+      dispatch(setRefreshing(false));
+      return;
+    }
+
+    // Si no estamos buscando, refrescamos el listado normal
+    dispatch(setRefreshing(true));
+    dispatch(setPage(0));
+    await dispatch(fetchProducts({page: 0, limit}));
+    dispatch(setRefreshing(false));
   };
 
   // Loading inicial
@@ -135,6 +153,8 @@ const HomeScreen = () => {
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         ListFooterComponent={
           query.trim().length > 0 ? null : hasMore ? (
             <View style={styles.footer}>

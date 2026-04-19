@@ -1,9 +1,21 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Provider} from 'react-redux';
+
 import {store} from './src/app/store';
 import AppNavigator from './src/navigation/AppNavigator';
+import {setFavorites} from './src/features/favorites/favoritesSlice';
+import {loadFavoritesFromStorage} from './src/features/favorites/favoritesStorage';
 
 const App = () => {
+  useEffect(() => {
+    const hydrateFavorites = async () => {
+      const storedFavorites = await loadFavoritesFromStorage();
+      store.dispatch(setFavorites(storedFavorites));
+    };
+
+    hydrateFavorites();
+  }, []);
+
   return (
     <Provider store={store}>
       <AppNavigator />

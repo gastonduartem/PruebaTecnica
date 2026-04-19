@@ -12,6 +12,7 @@ interface ProductsState {
   limit: number;
   hasMore: boolean;
   query: string;
+  refreshing: boolean;
 }
 
 const initialState: ProductsState = {
@@ -22,6 +23,7 @@ const initialState: ProductsState = {
   limit: 10,
   hasMore: true,
   query: '',
+  refreshing: false,
 };
 
 // Thunk para traer productos paginados
@@ -78,6 +80,11 @@ const productsSlice = createSlice({
       state.page = 0;
       state.hasMore = true;
       state.query = '';
+      state.refreshing = false;
+    },
+    // Controla el estado de pull to refresh
+    setRefreshing(state, action: PayloadAction<boolean>) {
+      state.refreshing = action.payload;
     },
   },
   extraReducers: builder => {
@@ -129,6 +136,6 @@ const productsSlice = createSlice({
   },
 });
 
-export const {setPage, setQuery, resetProductsState} = productsSlice.actions;
+export const {setPage, setQuery, resetProductsState, setRefreshing} = productsSlice.actions;
 
 export default productsSlice.reducer;

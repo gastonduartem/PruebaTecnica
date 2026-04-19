@@ -100,11 +100,14 @@ const productsSlice = createSlice({
 
         state.status = 'succeeded';
         state.hasMore = skip + limit < total;
+
+        // Guardamos la página actual en base al skip recibido
+        state.page = Math.floor(skip / limit);
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = 'failed';
         state.error =
-          (action.payload as string) || 'Error al cargar productos';
+          (action.payload as string) || 'Error loading products';
       })
 
       // Búsqueda

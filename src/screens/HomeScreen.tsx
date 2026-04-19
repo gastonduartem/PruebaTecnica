@@ -9,7 +9,10 @@ import {
 } from 'react-native';
 
 import {useAppDispatch, useAppSelector} from '../app/hooks';
-import {fetchProducts} from '../features/products/productsSlice';
+import {
+  fetchProducts,
+  setPage,
+} from '../features/products/productsSlice';
 import ProductCard from '../components/ProductCard';
 
 import {useNavigation} from '@react-navigation/native';
@@ -22,48 +25,62 @@ const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
 
-  // Estado global (Redux)
+  // Estado global
   const products = useAppSelector(state => state.products.items);
   const status = useAppSelector(state => state.products.status);
   const error = useAppSelector(state => state.products.error);
+  const page = useAppSelector(state => state.products.page);
+  const limit = useAppSelector(state => state.products.limit);
+  const hasMore = useAppSelector(state => state.products.hasMore);
 
   useEffect(() => {
-    dispatch(fetchProducts({page: 0, limit: 10}));
-  }, [dispatch]);
+    // Solo cargamos si todavía no hay productos
+    if (products.length === 0) {
+      dispatch(fetchProducts({page: 0, limit}));
+    }
+  }, [dispatch, products.length, limit]);
 
-  // Loading
-  if (status === 'loading') {
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+
+    // Guardamos la página siguiente y traemos más productos
+    dispatch(setPage(nextPage));
+    dispatch(fetchProducts({page: nextPage, limit}));
+  };
+
+  // Loading inicial
+  if (status === 'loading' && products.length === 0) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={styles.message}>Loading products...</Text>
+        <Text style={styles.message}>Cargando productos...</Text>
       </View>
     );
   }
 
-  // Error
-  if (status === 'failed') {
+  // Error inicial
+  if (status === 'failed' && products.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.message}>{error || 'An error ocurred.'}</Text>
+        <Text style={styles.message}>{error || 'Ocurrió un error'}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
+      {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.header}>Products</Text>
+        <Text style={styles.header}>Productos</Text>
 
         <Pressable
           style={styles.favoritesButton}
           onPress={() => navigation.navigate('Favorites')}>
-          <Text style={styles.favoritesButtonText}>Favorites</Text>
+          <Text style={styles.favoritesButtonText}>Favoritos</Text>
         </Pressable>
       </View>
 
-      {/* LISTA */}
+      {/* Lista */}
       <FlatList
         data={products}
         keyExtractor={item => item.id.toString()}
@@ -79,6 +96,26 @@ const HomeScreen = () => {
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={
+          hasMore ? (
+            <View style={styles.footer}>
+              <Pressable
+                style={styles.loadMoreButton}
+                onPress={handleLoadMore}
+                disabled={status === 'loading'}>
+                {status === 'loading' ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loadMoreText}>Load more products</Text>
+                )}
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.footer}>
+              <Text style={styles.endText}>There are no more productss</Text>
+            </View>
+          )
+        }
       />
     </View>
   );
@@ -89,7 +126,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fafafa',
   },
-
   headerRow: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -98,36 +134,50 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-
   header: {
     fontSize: 24,
     fontWeight: '700',
     color: '#111',
   },
-
   favoritesButton: {
     backgroundColor: '#111',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
-
   favoritesButtonText: {
     color: '#fff',
     fontWeight: '600',
   },
-
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 24,
   },
-
+  footer: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  loadMoreButton: {
+    backgroundColor: '#111',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    minWidth: 140,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  endText: {
+    color: '#666',
+    fontSize: 14,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   message: {
     marginTop: 12,
     fontSize: 16,

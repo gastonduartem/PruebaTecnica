@@ -107,12 +107,24 @@ const HomeScreen = () => {
 
   // Error inicial
   if (status === 'failed' && products.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.message}>{error || 'An error ocurred'}</Text>
-      </View>
-    );
-  }
+  const handleRetry = () => {
+    if (query.trim().length > 0) {
+      dispatch(fetchSearchedProducts(query.trim()));
+    } else {
+      dispatch(fetchProducts({page: 0, limit}));
+    }
+  };
+
+  return (
+    <View style={styles.center}>
+      <Text style={styles.message}>{error || 'Ocurrió un error'}</Text>
+
+      <Pressable style={styles.retryButton} onPress={handleRetry}>
+        <Text style={styles.retryButtonText}>Reintentar</Text>
+      </Pressable>
+    </View>
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -255,6 +267,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  retryButton: {
+  marginTop: 16,
+  backgroundColor: '#111',
+  paddingVertical: 10,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+},
+retryButtonText: {
+  color: '#fff',
+  fontWeight: '600',
+},
 });
 
 export default HomeScreen;

@@ -20,7 +20,7 @@ const FavoritesScreen = () => {
   if (favorites.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyText}>Todavía no agregaste favoritos.</Text>
+        <Text style={styles.emptyText}>There are no favorites</Text>
       </View>
     );
   }

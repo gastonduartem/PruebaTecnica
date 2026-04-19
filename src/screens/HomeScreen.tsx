@@ -120,7 +120,7 @@ const HomeScreen = () => {
       <Text style={styles.message}>{error || 'Ocurrió un error'}</Text>
 
       <Pressable style={styles.retryButton} onPress={handleRetry}>
-        <Text style={styles.retryButtonText}>Reintentar</Text>
+        <Text style={styles.retryButtonText}>Retry</Text>
       </Pressable>
     </View>
   );

@@ -1,97 +1,110 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Prueba Técnica - React Native
 
-# Getting Started
+Aplicación móvil desarrollada en React Native que permite visualizar productos, buscar por título y gestionar una lista de favoritos persistente.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+La aplicación fue diseñada priorizando claridad en la arquitectura y separación de responsabilidades.
 
-## Step 1: Start Metro
+---
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Funcionalidades
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- Listado de productos con paginación
+- Búsqueda por título con debounce (300ms)
+- Pantalla de detalle de producto
+- Agregar y eliminar favoritos
+- Persistencia de favoritos con AsyncStorage
+- Pull to refresh
+- Manejo de errores con opción de reintento
 
-```sh
-# Using npm
-npm start
+---
 
-# OR using Yarn
-yarn start
+## Decisiones técnicas
+
+### Redux Toolkit
+
+Se utilizó Redux Toolkit para manejar el estado global de forma centralizada y predecible.
+
+- `productsSlice`: maneja listado, búsqueda, paginación y estado de carga
+- `favoritesSlice`: maneja favoritos usando un objeto tipo diccionario para acceso eficiente
+
+---
+
+### Acciones asíncronas (Thunks)
+
+Se implementaron acciones asíncronas para:
+
+- Obtener productos paginados
+- Buscar productos por título
+
+Esto permite desacoplar la lógica de negocio de la capa de presentación.
+
+---
+
+### Debounce en búsqueda
+
+Se implementó un hook personalizado `useDebounce` para evitar múltiples requests mientras el usuario escribe, optimizando el consumo de la API.
+
+---
+
+### Persistencia con AsyncStorage
+
+Se implementó persistencia manual utilizando AsyncStorage.
+
+Flujo:
+
+1. Al iniciar la aplicación, se cargan los favoritos almacenados en el dispositivo
+2. Cada vez que los favoritos cambian, se guardan automáticamente
+
+---
+
+### Navegación
+
+Se utilizó React Navigation con navegación tipo Stack para estructurar las pantallas:
+
+- Home
+- Product Detail
+- Favorites
+
+---
+
+## Instalación
+
+```bash
+npm install
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## Ejecución
 
-### Android
+Android
 
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```bash
+npx react-native run-android
 ```
 
-### iOS
+Requisitos:
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+-Android Studio instalado
+-Emulador activo o dispositivo físico conectado
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+---
 
-```sh
-bundle install
-```
+## Estructura del proyecto
 
-Then, and every time you update your native dependencies, run:
+src/
+├── api/
+├── app/
+├── components/
+├── features/
+│ ├── products/
+│ └── favorites/
+├── navigation/
+├── screens/
+└── utils/
 
-```sh
-bundle exec pod install
-```
+---
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Autor
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Gastón Duarte

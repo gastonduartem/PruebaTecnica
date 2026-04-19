@@ -92,16 +92,18 @@ Requisitos:
 
 ## Estructura del proyecto
 
-src/
-├── api/
-├── app/
-├── components/
-├── features/
-│ ├── products/
-│ └── favorites/
-├── navigation/
-├── screens/
-└── utils/
+Organización modular por features, separando lógica de negocio, UI y navegación.
+
+    src/
+     ├── api/
+     ├── app/
+     ├── components/
+     ├── features/
+     │    ├── products/
+     │    └── favorites/
+     ├── navigation/
+     ├── screens/
+     └── utils/
 
 ---
 

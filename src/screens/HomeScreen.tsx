@@ -5,15 +5,20 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
 import {useAppDispatch, useAppSelector} from '../app/hooks';
 import {
   fetchProducts,
+  fetchSearchedProducts,
+  resetProductsState,
   setPage,
+  setQuery,
 } from '../features/products/productsSlice';
 import ProductCard from '../components/ProductCard';
+import {useDebounce} from '../utils/useDebounce';
 
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -32,20 +37,44 @@ const HomeScreen = () => {
   const page = useAppSelector(state => state.products.page);
   const limit = useAppSelector(state => state.products.limit);
   const hasMore = useAppSelector(state => state.products.hasMore);
+  const query = useAppSelector(state => state.products.query);
 
+  // Valor de búsqueda con debounce
+  const debouncedQuery = useDebounce(query, 300);
+
+  // Carga inicial
   useEffect(() => {
-    // Solo cargamos si todavía no hay productos
-    if (products.length === 0) {
+    if (products.length === 0 && debouncedQuery.trim() === '') {
       dispatch(fetchProducts({page: 0, limit}));
     }
-  }, [dispatch, products.length, limit]);
+  }, [dispatch, products.length, limit, debouncedQuery]);
+
+  // Búsqueda con debounce
+  useEffect(() => {
+    const trimmedQuery = debouncedQuery.trim();
+
+    if (trimmedQuery.length > 0) {
+      dispatch(fetchSearchedProducts(trimmedQuery));
+    } else {
+      // Si borran la búsqueda, reiniciamos y volvemos a cargar listado normal
+      dispatch(resetProductsState());
+      dispatch(fetchProducts({page: 0, limit}));
+    }
+  }, [debouncedQuery, dispatch, limit]);
 
   const handleLoadMore = () => {
-    const nextPage = page + 1;
+    // Si estamos buscando, no mostramos más páginas
+    if (query.trim().length > 0) {
+      return;
+    }
 
-    // Guardamos la página siguiente y traemos más productos
+    const nextPage = page + 1;
     dispatch(setPage(nextPage));
     dispatch(fetchProducts({page: nextPage, limit}));
+  };
+
+  const handleSearchChange = (text: string) => {
+    dispatch(setQuery(text));
   };
 
   // Loading inicial
@@ -53,7 +82,7 @@ const HomeScreen = () => {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={styles.message}>Cargando productos...</Text>
+        <Text style={styles.message}>Loading products...</Text>
       </View>
     );
   }
@@ -62,7 +91,7 @@ const HomeScreen = () => {
   if (status === 'failed' && products.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.message}>{error || 'Ocurrió un error'}</Text>
+        <Text style={styles.message}>{error || 'An error ocurred'}</Text>
       </View>
     );
   }
@@ -71,13 +100,23 @@ const HomeScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.header}>Productos</Text>
+        <Text style={styles.header}>Products</Text>
 
         <Pressable
           style={styles.favoritesButton}
           onPress={() => navigation.navigate('Favorites')}>
-          <Text style={styles.favoritesButtonText}>Favoritos</Text>
+          <Text style={styles.favoritesButtonText}>Favorites</Text>
         </Pressable>
+      </View>
+
+      {/* Input de búsqueda */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Search..."
+          value={query}
+          onChangeText={handleSearchChange}
+          style={styles.searchInput}
+        />
       </View>
 
       {/* Lista */}
@@ -97,7 +136,7 @@ const HomeScreen = () => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
-          hasMore ? (
+          query.trim().length > 0 ? null : hasMore ? (
             <View style={styles.footer}>
               <Pressable
                 style={styles.loadMoreButton}
@@ -106,13 +145,13 @@ const HomeScreen = () => {
                 {status === 'loading' ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.loadMoreText}>Load more products</Text>
+                  <Text style={styles.loadMoreText}>Load more</Text>
                 )}
               </Pressable>
             </View>
           ) : (
             <View style={styles.footer}>
-              <Text style={styles.endText}>There are no more productss</Text>
+              <Text style={styles.endText}>There are no more products</Text>
             </View>
           )
         }
@@ -148,6 +187,19 @@ const styles = StyleSheet.create({
   favoritesButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
   },
   listContent: {
     paddingHorizontal: 16,

@@ -77,16 +77,26 @@ npm install
 
 ## Ejecución
 
-Android
+1. Iniciar el servidor de Metro
+
+Desde la raíz del proyecto:
 
 ```bash
-npx react-native run-android
+npx react-native --reset-cache
 ```
 
 Requisitos:
 
 -Android Studio instalado
 -Emulador activo o dispositivo físico conectado
+
+2. Ejecutar la aplicación en Android
+
+En otra terminal, también en la raíz:
+
+```bash
+npx react-native run-android
+```
 
 ---
 
